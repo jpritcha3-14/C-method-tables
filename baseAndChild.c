@@ -4,21 +4,25 @@
 /* BASE CLASS */
 // Object type declaration
 typedef struct Base {
-    void (**vtable)();
+    void* (**vtable)();
     int x;
 } Base;
 
 // Object method declarations
-void printBase(Base const* obj) {
+void* printBase(Base const* obj) {
     printf("Base: (%d)\n", obj->x);
 }
 
-void printFart(Base const* obj) {
+void* returnVal(Base* obj) {
+    return &(obj->x);
+}
+
+void* printFart(Base const* obj) {
     printf("*fart*\n");
 }
 
 // An array of pointers to base classes functions that return void
-void (*baseVTable[])() = { &printBase, &printFart };
+void* (*baseVTable[])() = { &printBase, &returnVal, &printFart };
 
 // Base class constructor
 Base* newBase(int v) {
@@ -29,29 +33,33 @@ Base* newBase(int v) {
 }
 
 // Wrapper funtions for calling object methods 
-enum { call_print, call_fart};
+enum { call_print, call_return, call_fart};
 void print(Base* obj) {
     obj->vtable[call_print](obj);
 }
+int* const ret(Base* obj) {
+    return (int*)obj->vtable[call_return](obj);
+} 
 void fart(Base* obj) {
     obj->vtable[call_fart](obj);
 }
 
+
 /* CHILD CLASS */
 // Object type declaration
 typedef struct Child {
-    void (**vtable)();
+    void* (**vtable)();
     int y;
     int x;
 } Child;
 
 // Child method
-void printChild(Child* obj) {
+void* printChild(Child* obj) {
     printf("Child: (%d, %d)\n", obj->x, obj->y);
 }
 
 // An array of pointers to child classes functions 
-void (*childVTable[])() = { &printChild, &printFart };
+void* (*childVTable[])() = { &printChild, &returnVal, &printFart };
 
 // Child class constructor
 Child* newChild(int v1, int v2) {
@@ -69,4 +77,7 @@ void main() {
     fart(testBase);
     print(testChild);
     fart(testChild); 
+
+    printf("%d\n", *ret(testBase));
+    printf("%d\n", *ret(testChild));
 }
